@@ -14,8 +14,10 @@ jobs:
 
     - name: Check PR labels
       id: check_labels
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        PR_NUMBER=$(echo "${{ github.event.pull_request.number }}")
         echo "Checking labels for PR #$PR_NUMBER"
 
         # Get the labels on the PR
