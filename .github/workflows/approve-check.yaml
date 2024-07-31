@@ -1,4 +1,4 @@
-name: Check PR Labels
+name: Mergeable Check
 
 on:
   pull_request:
@@ -9,41 +9,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Check PR labels
-      id: check_labels
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-      run: |
-        echo "Checking labels for PR #$PR_NUMBER"
+      - name: Check PR Labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
 
-        # Get the labels on the PR
-        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          REQUIRED_LABELS=("ready" "lgtm" "approved")
+          for LABEL in "${REQUIRED_LABELS[@]}"; do
+            if ! echo "$LABELS" | grep -q "$LABEL"; then
+              echo "Missing required label: $LABEL, unalbe to merge"
+              exit 1
+            fi
+          done
 
-        # Check if required labels are present
-        REQUIRED_LABELS=("lgtm" "approved" "ready")
-        ALL_LABELS_PRESENT=true
-
-        for LABEL in "${REQUIRED_LABELS[@]}"; do
-          if ! echo "$LABELS" | grep -q "$LABEL"; then
-            echo "Missing required label: $LABEL"
-            ALL_LABELS_PRESENT=false
+          if echo "$LABELS" | grep -q "hold"; then
+            echo "Label 'hold' is present, unable to merge."
+            exit 1
           fi
-        done
-
-        if [ "$ALL_LABELS_PRESENT" = false ]; then
-          echo "Not all required labels are present. Failing the check."
-          exit 1
-        fi
-
-        if echo "$LABELS" | grep -q "hold"; then
-          echo "'hold' label is present. Failing the check."
-          exit 1
-        fi
-
-    - name: Set output if labels are present
-      if: success()
-      run: echo "All required labels are present."
