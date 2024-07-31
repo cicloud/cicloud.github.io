@@ -1,0 +1,44 @@
+name: Check PR Labels
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
+
+jobs:
+  label-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Check PR labels
+      id: check_labels
+      run: |
+        PR_NUMBER=$(echo "${{ github.event.pull_request.number }}")
+        echo "Checking labels for PR #$PR_NUMBER"
+
+        # Get the labels on the PR
+        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+
+        # Check if required labels are present
+        REQUIRED_LABELS=("lgtm" "approved" "ready")
+        ALL_LABELS_PRESENT=true
+
+        for LABEL in "${REQUIRED_LABELS[@]}"; do
+          if ! echo "$LABELS" | grep -q "$LABEL"; then
+            echo "Missing required label: $LABEL"
+            ALL_LABELS_PRESENT=false
+          else
+            echo "Found required label: $LABEL"
+          fi
+        done
+
+        if [ "$ALL_LABELS_PRESENT" = false ]; then
+          echo "Not all required labels are present. Failing the check."
+          exit 1
+        fi
+
+    - name: Set output if labels are present
+      if: success()
+      run: echo "All required labels are present."
