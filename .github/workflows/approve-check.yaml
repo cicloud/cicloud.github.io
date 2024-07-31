@@ -16,7 +16,7 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          API_URL="http://124.222.18.13:8080/public/v1/codereview/cicloud/cicloud.github.io/pull/$PR_NUMBER/mergeable"
+          API_URL="http://124.222.18.13:8080/public/v1/codereview/v1/codereview/${OWNER}/${REPO}/pull/$PR_NUMBER/mergeable"
 
           RESPONSE=$(curl -s $API_URL)
           MERGEABLE=$(echo $RESPONSE | jq -r '.mergeable')
