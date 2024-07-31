@@ -31,3 +31,5 @@ jobs:
             echo "Label 'hold' is present, unable to merge."
             exit 1
           fi
+
+          echo "The pr is mergeable."
