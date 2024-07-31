@@ -31,13 +31,16 @@ jobs:
           if ! echo "$LABELS" | grep -q "$LABEL"; then
             echo "Missing required label: $LABEL"
             ALL_LABELS_PRESENT=false
-          else
-            echo "Found required label: $LABEL"
           fi
         done
 
         if [ "$ALL_LABELS_PRESENT" = false ]; then
           echo "Not all required labels are present. Failing the check."
+          exit 1
+        fi
+
+        if echo "$LABELS" | grep -q "hold"; then
+          echo "'hold' label is present. Failing the check."
           exit 1
         fi
 
