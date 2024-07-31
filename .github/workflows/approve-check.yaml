@@ -5,31 +5,26 @@ on:
     types: [opened, synchronize, labeled, unlabeled]
 
 jobs:
-  label-check:
+  mergeable-check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Check PR Labels
+      - name: Check Mergeable
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          API_URL="http://124.222.18.13:8080/public/v1/codereview/cicloud/cicloud.github.io/pull/$PR_NUMBER/mergeable"
 
-          REQUIRED_LABELS=("ready" "lgtm" "approved")
-          for LABEL in "${REQUIRED_LABELS[@]}"; do
-            if ! echo "$LABELS" | grep -q "$LABEL"; then
-              echo "Missing required label: $LABEL, unalbe to merge"
-              exit 1
-            fi
-          done
+          RESPONSE=$(curl -s $API_URL)
+          MERGEABLE=$(echo $RESPONSE | jq -r '.mergeable')
+          MESSAGE=$(echo $RESPONSE | jq -r '.message')
 
-          if echo "$LABELS" | grep -q "hold"; then
-            echo "Label 'hold' is present, unable to merge."
+          if [ "$MERGEABLE" != "true" ]; then
+            echo "PR is not mergeable: $MESSAGE"
             exit 1
           fi
 
-          echo "The pr is mergeable."
+          echo "PR is mergeable: $MESSAGE"
