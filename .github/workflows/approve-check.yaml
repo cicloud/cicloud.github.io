@@ -10,14 +10,18 @@ jobs:
 
     steps:
       - name: Check Mergeable
+        env:
+          TOKEN: "admin:sadkfasdj123123"
         run: |
           OWNER=${{ github.repository_owner }}
           REPO=${{ github.event.repository.name }}
           PR_NUMBER=${{ github.event.pull_request.number }}
 
+          ENCODED_TOKEN=$(echo -n $TOKEN | base64)
+          
           API_URL="http://124.222.18.13:8080/public/v1/codereview/${OWNER}/${REPO}/pull/${PR_NUMBER}/mergeable"
 
-          RESPONSE=$(curl -s $API_URL)
+          RESPONSE=$(curl -s -H "Authorization: Basic $ENCODED_TOKEN" $API_URL)
           MERGEABLE=$(echo $RESPONSE | jq -r '.mergeable')
           MESSAGE=$(echo $RESPONSE | jq -r '.message')
 
