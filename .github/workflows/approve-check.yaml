@@ -5,29 +5,29 @@ on:
     types: [opened, synchronize, labeled, unlabeled]
 
 jobs:
-  label-check:
+  mergeable-check:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Check PR Labels
+      - name: Check Mergeable
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          TOKEN: "admin:sadkfasdj123123"
         run: |
-          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          OWNER=${{ github.repository_owner }}
+          REPO=${{ github.event.repository.name }}
+          PR_NUMBER=${{ github.event.pull_request.number }}
 
-          REQUIRED_LABELS=("ready" "lgtm" "approved")
-          for LABEL in "${REQUIRED_LABELS[@]}"; do
-            if ! echo "$LABELS" | grep -q "$LABEL"; then
-              echo "Missing required label: $LABEL, unalbe to merge"
-              exit 1
-            fi
-          done
+          ENCODED_TOKEN=$(echo -n $TOKEN | base64)
 
-          if echo "$LABELS" | grep -q "hold"; then
-            echo "Label 'hold' is present, unable to merge."
+          API_URL="http://124.222.18.13:8080/public/v1/codereview/${OWNER}/${REPO}/pull/${PR_NUMBER}/status"
+
+          RESPONSE=$(curl -s -H "Authorization: Basic $ENCODED_TOKEN" $API_URL)
+          MERGEABLE=$(echo $RESPONSE | jq -r '.mergeable')
+          MESSAGE=$(echo $RESPONSE | jq -r '.message')
+
+          if [ "$MERGEABLE" != "true" ]; then
+            echo "PR is not mergeable: $MESSAGE"
             exit 1
           fi
+
+          echo "PR is mergeable: $MESSAGE"
