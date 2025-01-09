@@ -5,6 +5,21 @@ on:
     types: [opened, synchronize, labeled, unlabeled]
 
 jobs:
+  golang-ci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GoGo
+        run: |
+          golang-ci-lint
+
+  check-ready-to-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Pull Request Ready To Merge
+        run: |
+          akdsflsadfkadsfsda
+
   label-check:
     runs-on: ubuntu-latest
 
@@ -31,3 +46,20 @@ jobs:
             echo "Label 'hold' is present, unable to merge."
             exit 1
           fi
+
+  callback:
+    needs: [label-check, golang-ci-lint, check-ready-to-merge]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send Webhook
+        run: |
+          curl -X POST \
+          -H "Content-Type: application/json" \
+            "http://124.222.18.13:8080/v1/public/codereview/${{ github.repository_owner }}/${{ github.event.repository.name }}/actions/${{ github.run_id }}" \
+          -d '{
+            "status": "${{ job.status }}",
+            "workflow": "${{ github.workflow }}",
+            "pr_number": "${{ github.event.pull_request.number }}",
+            "commit_sha": "${{ github.sha }}"
+          }'
