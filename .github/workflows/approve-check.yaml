@@ -1,8 +1,8 @@
 name: Mergeable Check
 
 on:
-  repository_dispatch:
-    types: [ run-pull-request-checks ]
+  pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
 
 jobs:
   label-check:
