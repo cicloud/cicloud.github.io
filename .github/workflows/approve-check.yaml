@@ -1,8 +1,8 @@
 name: Mergeable Check
 
 on:
-  pull_request:
-    types: [opened, synchronize, labeled, unlabeled]
+  repository_dispatch:
+    types: [ run-pull-request-checks ]
 
 jobs:
   label-check:
@@ -15,7 +15,7 @@ jobs:
       - name: Check PR Labels
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.client_payload.pull_request.number }}
         run: |
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
 
