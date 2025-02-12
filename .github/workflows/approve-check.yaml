@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, labeled, unlabeled]
 
+permissions:
+  pull-requests: read
+  contents: read
+
 jobs:
   label-check:
     runs-on: ubuntu-latest
@@ -17,19 +21,35 @@ jobs:
       - name: Check PR Labels
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.client_payload.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          echo "Checking PR #${PR_NUMBER}"
 
+          # 获取所有标签并打印
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          echo "Current labels:"
+          echo "$LABELS"
+
+          # 检查必需标签
           REQUIRED_LABELS=("ready" "lgtm" "approved")
+          MISSING_LABELS=()
+
           for LABEL in "${REQUIRED_LABELS[@]}"; do
             if ! echo "$LABELS" | grep -q "$LABEL"; then
-              echo "Missing required label: $LABEL, unalbe to merge"
-              exit 1
+              MISSING_LABELS+=("$LABEL")
             fi
           done
 
-          if echo "$LABELS" | grep -q "hold"; then
-            echo "Label 'hold' is present, unable to merge."
+          # 检查是否有缺失的标签
+          if [ ${#MISSING_LABELS[@]} -gt 0 ]; then
+            echo "::error::Missing required labels: ${MISSING_LABELS[*]}"
             exit 1
           fi
+
+          # 检查 hold 标签
+          if echo "$LABELS" | grep -q "hold"; then
+            echo "::error::Label 'hold' is present, cannot merge"
+            exit 1
+          fi
+
+          echo "All required labels are present and no blocking labels found"
