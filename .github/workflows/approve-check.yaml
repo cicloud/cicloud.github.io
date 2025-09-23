@@ -2,7 +2,7 @@ name: Mergeable Check
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled, unlabeled]
+    types: [ opened, synchronize, labeled, unlabeled ]
 
 permissions:
   pull-requests: read
@@ -25,10 +25,8 @@ jobs:
         run: |
           echo "Checking PR #${PR_NUMBER}"
           
-          echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRyYWRlc2VydmVyLWd1b2p1bi1jcmItM0BzZXJ2aWNlYWNjb3VudC5zcGVjdHJhLmZ1bmQiLCJpc3MiOiJzcGVjdHJhLmZ1bmQiLCJleHAiOjgwMDI4MzA1NTcsImlhdCI6MTY5NTYzMDU1N30.xr8gSA2zepChtbO8NgizlVhy-gxMyePZQaUhNLuyq1s"
-          echo "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxiV0ZwYkNJNkluUnlZV1JsYzJWeWRtVnlMV2QxYjJwMWJpMWpjbUl0TTBCelpYSjJhV05sWVdOamIzVnVkQzV6Y0dWamRISmhMbVoxYm1RaUxDSnBjM01pT2lKemNHVmpkSEpoTG1aMWJtUWlMQ0psZUhBaU9qZ3dNREk0TXpBMU5UY3NJbWxoZENJNk1UWTVOVFl6TURVMU4zMC54cjhnU0EyemVwQ2h0Yk84TmdpemxWaHktZ3hNeWVQWlFhVWhOTHV5cTFz"
-          echo "J2V5SmhiR2NpT2lKSVV6STFOaUlzSW5SNWNDSTZJa3BYVkNKOS5leUpsYldGcGJDSTZJblJ5WVdSbGMyVnlkbVZ5TFdkMWIycDFiaTFqY21JdE0wQnpaWEoyYVdObFlXTmpiM1Z1ZEM1emNHVmpkSEpoTG1aMWJtUWlMQ0pwYzNNaU9pSnpjR1ZqZEhKaExtWjFibVFpTENKbGVIQWlPamd3TURJNE16QTFOVGNzSW1saGRDSTZNVFk1TlRZek1EVTFOMzAueHI4Z1NBMnplcENodGJPOE5naXpsVmh5LWd4TXllUFpRYVVoTkx1eXExcyc="
-
+          exit 1
+          
           # 获取所有标签并打印
           LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
           echo "Current labels:"
@@ -57,3 +55,26 @@ jobs:
           fi
 
           echo "All required labels are present and no blocking labels found"
+
+  publish-failure-announcement:
+    runs-on: ubuntu-latest
+    needs: [ label-check ]
+    if: always() && contains(needs.*.result, 'failure')
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Publish Failure Announcement -> Feishu
+        run: |
+          VERSION=${{ github.sha }} \
+          MESSAGE=$(echo '${{ github.event.pull_request.title }}' | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g') \
+          GITHUB_RUN_ID=${{ github.run_id }} \
+          FAILED_JOBS="${{ toJson(needs) }}" \
+            ./publish-failure-announcement.sh |
+          curl -X POST -H "Content-Type: application/json" \
+            --data-binary @- \
+            "https://open.feishu.cn/open-apis/bot/v2/hook/3af42f8f-ba8b-4051-8964-ecfce869d2d9"
