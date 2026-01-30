@@ -1,0 +1,13 @@
+apiVersion: trading.spectra.fund/v1beta1
+kind: Machine
+metadata:
+  name: infraserver-aliyun-cc-1002
+  labels:
+    acquisition-type: purchased
+    env: dev
+spec:
+  status: Ready
+  connection:
+    init: "47.239.53.129:22"
+  provider: ""
+  defaultConfigurations: [ ]
