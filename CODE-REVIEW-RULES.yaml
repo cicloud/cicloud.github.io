@@ -45,4 +45,3 @@ rules:
         - "**/*.md"
         - "docs/**"
     skipApproval: true
-  ```
