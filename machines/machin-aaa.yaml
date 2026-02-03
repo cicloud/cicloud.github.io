@@ -8,6 +8,6 @@ metadata:
 spec:
   status: Ready
   connection:
-    init: "47.239.53.129:33"
+    init: "47.239.53.129:334"
   provider: ""
   defaultConfigurations: [ ]
