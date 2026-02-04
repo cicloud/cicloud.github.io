@@ -6,7 +6,7 @@ rules:
   - name: "large-pr"
     match:
       conditions:
-        - type: "FilesCount"
+        - type: "FilesCountChanged"
           operator: ">"
           value: 10
     skipApproval: false
@@ -17,7 +17,7 @@ rules:
       filePatterns:
         - "machines/*.yaml"
       conditions:
-        - type: "AddFile"
+        - type: "FileAdded"
     skipApproval: false
 
   - name: "terminate-machine"
@@ -25,7 +25,7 @@ rules:
       filePatterns:
         - "machines/*.yaml"
       conditions:
-        - type: "ChangeContent"
+        - type: "ContentChanged"
           pattern: "status:\\s*Terminated"
     skipApproval: false
 
@@ -33,7 +33,7 @@ rules:
     match:
       filePatterns: [ "machines/*.yaml" ]
       conditions:
-        - type: "ChangeYamlFields"
+        - type: "YamlFieldsChanged"
           fields:
             - "spec.connection.*"
             - "spec.defaultConfigurations.*"
@@ -45,3 +45,11 @@ rules:
         - "**/*.md"
         - "docs/**"
     skipApproval: true
+
+  - name: "short-pr"
+    match:
+      conditions:
+        - type: "LinesCountChanged"
+          operator: "<="
+          value: 100
+    skipReview: true
