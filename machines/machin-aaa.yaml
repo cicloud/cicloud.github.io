@@ -6,8 +6,8 @@ metadata:
     acquisition-type: purchased
     env: dev
 spec:
-  status: Ready
+  status: Terminated
   connection:
-    init: "47.239.53.129:335901"
+    init: "47.239.53.129:33590"
   provider: "xxx"
   defaultConfigurations: [ ]
