@@ -9,5 +9,5 @@ spec:
   status: Ready
   connection:
     init: "47.239.53.129:33590"
-  provider: "xxx"
+  provider: "xxxyyy"
   defaultConfigurations: [ ]
