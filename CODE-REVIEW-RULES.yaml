@@ -35,8 +35,8 @@ rules:
       conditions:
         - type: "YamlFieldsChanged"
           fields:
-            - "spec.connection.*"
-            - "spec.defaultConfigurations.*"
+            - ".spec.connection.*"
+            - ".spec.defaultConfigurations.*"
     skipApproval: true
 
   - name: "docs-only"
