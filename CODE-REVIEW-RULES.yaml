@@ -1,55 +1,38 @@
-default:
-  skipApproval: false   # false=需要 /approve
-  skipReview: false     # false=需要 /lgtm
-
 rules:
-  - name: "large-pr"
-    match:
-      conditions:
-        - type: "FilesCountChanged"
-          operator: ">"
-          value: 10
-    skipApproval: false
-    skipReview: false
-
-  - name: "new-machine"
+  - name: "update-machine-config"
     match:
       filePatterns:
         - "machines/*.yaml"
       conditions:
-        - type: "FileAdded"
-    skipApproval: false
-
-  - name: "terminate-machine"
-    match:
-      filePatterns:
-        - "machines/*.yaml"
-      conditions:
-        - type: "ContentChanged"
-          pattern: "status:\\s*Terminated"
-    skipApproval: false
-
-  - name: "change-machine-connection"
-    match:
-      filePatterns: [ "machines/*.yaml" ]
-      conditions:
-        - type: "YamlFieldsChanged"
+        - type: YamlFieldsChanged
           fields:
             - ".spec.connection.*"
+            - ".metadata.labels.*"
             - ".spec.defaultConfigurations.*"
     skipApproval: true
-
-  - name: "docs-only"
+  - name: "update-gateways"
     match:
       filePatterns:
-        - "**/*.md"
-        - "docs/**"
+        - "machines/**"
     skipApproval: true
-
-  - name: "short-pr"
+  - name: "update-configmaps"
+    match:
+      filePatterns:
+        - "configmaps/**"
+    skipApproval: true
+  - name: "update-daemon-versions"
+    match:
+      filePatterns:
+        - "daemons/config.yaml"
+      conditions:
+        - type: YamlFieldsChanged
+          fields:
+            - ".version"
+    skipApproval: true
+  - name: "small-size-pr"
     match:
       conditions:
-        - type: "LinesCountChanged"
+        - type: LinesCountChanged
           operator: "<="
           value: 100
     skipReview: true
