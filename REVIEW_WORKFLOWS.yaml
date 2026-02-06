@@ -13,7 +13,7 @@ rules:
   - name: "update-gateways"
     match:
       filePatterns:
-        - "machines/**"
+        - "gateways/**"
     skipApproval: true
   - name: "update-configmaps"
     match:
