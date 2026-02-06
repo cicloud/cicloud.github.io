@@ -8,7 +8,7 @@ rules:
           fields:
             - ".spec.connection.*"
             - ".metadata.labels.*"
-            - ".spec.defaultConfigurations.*"
+            - ".spec.defaultConfigurations"
     skipApproval: true
   - name: "update-gateways"
     match:
