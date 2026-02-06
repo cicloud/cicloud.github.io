@@ -10,4 +10,6 @@ spec:
   connection:
     init: "47.239.53.129:3351"
   provider: "xxx"
-  defaultConfigurations: [ ]
+  defaultConfigurations:
+    - name: server
+      value: key
