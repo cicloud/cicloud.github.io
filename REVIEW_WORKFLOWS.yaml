@@ -1,3 +1,5 @@
+default:
+  requireTestVerification: true
 rules:
   - name: "update-machine-config"
     match:
